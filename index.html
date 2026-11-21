@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz Droit du travail</title>
+<style>
+:root{
+  --bg:#f5f6fa; --card:#ffffff; --text:#1c2033; --muted:#6b7190; --line:#dfe2ee;
+  --accent:#4a4fe0; --accent-soft:#e8e9fc;
+  --ok:#1f9d55; --ok-soft:#e3f6ea; --ko:#d64045; --ko-soft:#fde8e9;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12141f; --card:#1b1e2e; --text:#eceefa; --muted:#9aa0c0; --line:#2e3248;
+    --accent:#8187ff; --accent-soft:#272a4a;
+    --ok:#4cc884; --ok-soft:#173627; --ko:#ff7378; --ko-soft:#401d21;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  min-height:100vh; display:flex; flex-direction:column; line-height:1.45;
+}
+main{flex:1; width:100%; max-width:720px; margin:0 auto; padding:20px 16px 12px}
+footer{text-align:center; padding:18px 16px 26px; color:var(--muted); font-size:.9rem}
+footer strong{color:var(--text)}
+h1{font-size:1.8rem; margin:8px 0 4px}
+.sub{color:var(--muted); margin:0 0 20px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px}
+.courses{display:grid; gap:12px}
+.course{
+  text-align:left; width:100%; cursor:pointer; font:inherit; color:inherit;
+  background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px;
+  transition:transform .08s, border-color .15s;
+}
+.course:hover{border-color:var(--accent); transform:translateY(-1px)}
+.course .t{font-weight:700; font-size:1.1rem}
+.course .d{color:var(--muted); font-size:.92rem; margin-top:2px}
+.course .meta{margin-top:8px; font-size:.85rem; color:var(--accent); font-weight:600}
+.course .best{color:var(--muted); font-weight:500}
+.mode{display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; align-items:center}
+.mode span{color:var(--muted); font-size:.92rem}
+.chip{
+  font:inherit; cursor:pointer; padding:7px 14px; border-radius:999px;
+  border:1px solid var(--line); background:var(--card); color:var(--text);
+}
+.chip.on{background:var(--accent); border-color:var(--accent); color:#fff}
+.top{display:flex; align-items:center; gap:12px; margin-bottom:14px}
+.back{font:inherit; cursor:pointer; background:none; border:none; color:var(--muted); padding:4px 0}
+.bar{flex:1; height:8px; background:var(--line); border-radius:99px; overflow:hidden}
+.bar > div{height:100%; background:var(--accent); width:0; transition:width .25s}
+.count{color:var(--muted); font-size:.9rem; white-space:nowrap}
+.badge{
+  display:inline-block; font-size:.78rem; font-weight:700; letter-spacing:.02em;
+  padding:4px 10px; border-radius:99px; margin-bottom:10px;
+  background:var(--accent-soft); color:var(--accent);
+}
+.badge.multi{background:#fff1d6; color:#9a5b00}
+@media (prefers-color-scheme: dark){ .badge.multi{background:#3d2f12; color:#ffc766} }
+.q{font-size:1.2rem; font-weight:650; margin:0 0 16px}
+.opts{display:grid; gap:10px}
+.opt{
+  display:flex; gap:12px; align-items:flex-start; text-align:left; width:100%;
+  font:inherit; color:inherit; cursor:pointer;
+  background:var(--card); border:2px solid var(--line); border-radius:12px; padding:12px 14px;
+  transition:border-color .12s, background .12s;
+}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{
+  flex:none; width:26px; height:26px; display:grid; place-items:center; font-size:.8rem; font-weight:700;
+  border:2px solid var(--line); color:var(--muted); border-radius:50%;
+}
+.opt.multi .k{border-radius:7px}
+.opt.sel{border-color:var(--accent); background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent); border-color:var(--accent); color:#fff}
+.opt.ok{border-color:var(--ok); background:var(--ok-soft)}
+.opt.ok .k{background:var(--ok); border-color:var(--ok); color:#fff}
+.opt.ko{border-color:var(--ko); background:var(--ko-soft)}
+.opt.ko .k{background:var(--ko); border-color:var(--ko); color:#fff}
+.opt.miss{border-color:var(--ok); border-style:dashed; background:var(--ok-soft)}
+.opt:disabled{cursor:default}
+.actions{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap}
+.btn{
+  font:inherit; font-weight:650; cursor:pointer; border-radius:12px; padding:12px 20px;
+  border:2px solid var(--accent); background:var(--accent); color:#fff; flex:1; min-width:140px;
+}
+.btn.ghost{background:transparent; color:var(--accent)}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.verdict{margin-top:16px; padding:12px 14px; border-radius:12px; font-weight:650}
+.verdict.ok{background:var(--ok-soft); color:var(--ok)}
+.verdict.ko{background:var(--ko-soft); color:var(--ko)}
+.verdict small{display:block; font-weight:500; opacity:.9}
+.expl{margin-top:12px; padding:12px 14px; border-radius:12px; background:var(--accent-soft); border-left:4px solid var(--accent)}
+.hint{color:var(--muted); font-size:.82rem; margin-top:12px}
+.end{text-align:center}
+.score{font-size:3rem; font-weight:800; margin:6px 0}
+.review{text-align:left; margin-top:18px}
+.review .it{padding:10px 0; border-top:1px solid var(--line); font-size:.95rem}
+.review .it b{display:block; margin-bottom:2px}
+.review .it span{color:var(--ok)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<footer>Réalisé par <strong>Julien Dubuc</strong></footer>
+
+<script>
+/* ---------- Données ---------- */
+const Q = (t, text, opts, ans, exp) => ({t, text, opts, ans, exp});
+// t : "s" = réponse unique, "m" = réponses multiples ; ans = indices des bonnes options
+
+const COURSES = [
+{
+  id:"intro",
+  title:"Introduction au droit du travail",
+  desc:"Origines, historique, sources, institutions (document à lire – séance 1)",
+  questions:[
+    Q("s","À quelle branche du droit appartient le droit du travail ?",
+      ["Le droit social","Le droit pénal","Le droit fiscal","Le droit public"],[0],
+      "Le droit du travail fait partie de la branche du droit social : c'est l'ensemble des normes qui régissent les relations entre l'employé et l'employeur."),
+    Q("m","Le droit du travail encadre notamment :",
+      ["La formation du contrat de travail","L'exécution du contrat de travail","La rupture du contrat de travail","La fixation des impôts de l'entreprise"],[0,1,2],
+      "Son importance tient au fait qu'il encadre la formation, l'exécution et la rupture du contrat de travail."),
+    Q("m","Parmi ces exemples, lesquels relèvent des relations INDIVIDUELLES de travail ?",
+      ["Le licenciement","La démission","La grève","Le droit de créer un syndicat"],[0,1],
+      "Licenciement et démission sont des relations individuelles. La grève relève des relations collectives."),
+    Q("s","Qu'est-ce qui a provoqué l'intervention de l'État dans les rapports de travail ?",
+      ["L'avènement du travail industriel et l'inégalité flagrante entre employeurs et salariés","La création de l'Union européenne","La fusion de l'ANPE et des Assedic","La mise en place du Code civil"],[0],
+      "Le travail industriel a entraîné des conditions de vie très dures pour les ouvriers et une inégalité flagrante : l'État est intervenu. Le droit du travail est un droit récent."),
+    Q("s","En quelle année a été adoptée la première loi « sociale » ?",
+      ["1841","1864","1884","1936"],[0],
+      "1841 : loi qui limitait la durée journalière du travail des enfants dans les ateliers."),
+    Q("s","D'après la loi de 1841, quelle est la durée journalière maximale pour les enfants de 8 à 12 ans ?",
+      ["8 heures","12 heures","10 heures","6 heures"],[0],
+      "8 heures pour les 8-12 ans, et 12 heures pour les 12-16 ans."),
+    Q("s","En quelle année le droit de grève a-t-il été octroyé aux salariés ?",
+      ["1864","1841","1884","1906"],[0],
+      "Le droit de grève date de 1864 ; le droit de créer des syndicats de 1884."),
+    Q("s","En quelle année le droit de créer des syndicats a-t-il été reconnu ?",
+      ["1884","1864","1841","1919"],[0],
+      "1884 pour les syndicats, 1864 pour la grève."),
+    Q("m","Quelles avancées sociales ont marqué le XXe siècle ?",
+      ["Une diminution continue de la durée du temps de travail","L'instauration puis l'accroissement des congés payés","L'« explosion » de la négociation collective","La suppression du lien de subordination"],[0,1,2],
+      "Les trois premières sont citées dans le cours. Le lien de subordination reste au contraire le critère du contrat de travail."),
+    Q("s","Quelles personnes sont exclues du champ d'application du droit du travail ?",
+      ["Les fonctionnaires et agents des collectivités publiques","Les employés de maison","Les salariés de l'agriculture","Les salariés des professions libérales"],[0],
+      "Le droit du travail s'applique aux salariés de l'industrie, du commerce, de l'agriculture, des professions libérales, aux employés de maison. Sont exclus les fonctionnaires et agents des collectivités publiques."),
+    Q("s","Que dit-on d'un grand nombre de droits du travail inscrits dans la Constitution ?",
+      ["Ils ont une valeur supérieure aux lois et décrets","Ils ont la même valeur qu'un règlement intérieur","Ils sont inférieurs aux conventions collectives","Ils ne sont jamais invocables"],[0],
+      "Les droits inscrits dans la Constitution (droit de grève, droit de participation…) ont une valeur supérieure aux lois et décrets."),
+    Q("s","Où se situent les sources conventionnelles (accords et conventions collectives) dans la pyramide des normes ?",
+      ["Au bas de la pyramide","Au sommet de la pyramide","Au-dessus de la Constitution","Elles n'y figurent pas"],[0],
+      "On ajoute, au bas de la pyramide des normes, les sources conventionnelles. Elles complètent et précisent le droit social, généralement dans un sens plus favorable au salarié."),
+    Q("s","Pourquoi le CNE (contrat nouvelle embauche, août 2005) a-t-il été abrogé ?",
+      ["Il permettait de rompre le contrat sans motif, ce qui était jugé non conforme à une convention de l'OIT","Parce qu'il imposait un CDI à tous les salariés","Parce qu'il était contraire à une directive sur le temps de travail","Parce qu'il interdisait la période d'essai"],[0],
+      "Le CNE permettait de rompre le contrat sans motif ; il a été abrogé par une loi de 2008, jugé non conforme à la convention de l'OIT. (Le cours écrit « convention 58 » ; il s'agit en réalité de la convention n° 158 de l'OIT.)"),
+    Q("s","Quels textes du droit communautaire en matière de travail sont transposés en droit français ?",
+      ["Les règlements et les directives","Uniquement les arrêts de la Cour de cassation","Les chartes de bonne conduite","Les usages d'entreprise"],[0],
+      "Le droit communautaire pose des règlements ainsi que des directives (temps de travail, sécurité…), transposés en droit français."),
+    Q("s","Entre qui sont signés les conventions et accords collectifs ?",
+      ["Un ou plusieurs employeurs et un ou plusieurs syndicats","Un employeur et un salarié","Le salarié et l'inspecteur du travail","L'État et le conseil de prud'hommes"],[0],
+      "C'est un contrat collectif conclu entre un ou plusieurs employeurs et un ou plusieurs syndicats."),
+    Q("s","Quel est le rôle des accords collectifs par rapport à la loi ?",
+      ["La loi offre des garanties minimales, les accords peuvent en fournir des supplémentaires","Ils remplacent la loi","Ils sont toujours moins favorables que la loi","Ils s'appliquent uniquement aux fonctionnaires"],[0],
+      "Exemple du cours : l'indemnité de licenciement est prévue par la loi, mais des conventions collectives posent des indemnités supérieures."),
+    Q("s","Qui établit le règlement intérieur ?",
+      ["L'employeur, de façon unilatérale","Les syndicats seuls","L'employeur et le salarié par négociation","Le conseil de prud'hommes"],[0],
+      "Le règlement intérieur pose restrictions, interdictions et sanctions, et est établi unilatéralement par l'employeur. Le cours le dit obligatoire dans les entreprises de plus de 20 salariés (à noter : le Code du travail actuel retient le seuil de 50 salariés)."),
+    Q("s","Laquelle de ces situations est un exemple d'« usage » en droit du travail ?",
+      ["La prime de 13e mois","La loi sur les congés payés","Un arrêt de la Cour de cassation","Une directive européenne"],[0],
+      "Les usages sont des sources de droit ; l'exemple du cours est la prime de 13e mois."),
+    Q("s","Que sont les codes ou chartes de bonne conduite (soft law) ?",
+      ["Des textes déclaratoires, non signés, pouvant créer éventuellement des obligations ou interdictions","Des contrats collectifs signés par les syndicats","Des lois votées par le Parlement","Des décisions du conseil de prud'hommes"],[0],
+      "On est dans le style de la déclaration de principe, sans signature de personne. Exemple : l'usage du matériel informatique."),
+    Q("s","Quelle est la caractéristique principale de la législation du droit du travail ?",
+      ["Elle est le plus souvent impérative et laisse peu de place à la liberté contractuelle","Elle est entièrement supplétive","Elle repose uniquement sur le contrat","Elle ne concerne que les relations collectives"],[0],
+      "C'est un droit très complet, fait d'une législation dans la plupart des cas impérative."),
+    Q("s","Quelle juridiction est compétente en premier degré pour les litiges individuels entre salariés (ou apprentis) et employeur ?",
+      ["Le conseil de prud'hommes","Le tribunal de commerce","Le tribunal administratif","La DDETS"],[0],
+      "Le conseil de prud'hommes règle les litiges individuels survenant à l'occasion du contrat de travail ou d'apprentissage."),
+    Q("s","France Travail est l'ancien nom de quelle institution, et jusqu'à quand ?",
+      ["Pôle emploi, jusqu'au 31 décembre 2023","L'ANPE, jusqu'en 2008","La DDETS, jusqu'en 2021","L'URSSAF, jusqu'en 2019"],[0],
+      "France Travail, anciennement Pôle emploi jusqu'au 31 décembre 2023, est un établissement public à caractère administratif. Créé le 19 décembre 2008 par fusion de l'ANPE et de l'Assedic."),
+    Q("s","Depuis quand la DDETS existe-t-elle, et de quelle fusion est-elle issue ?",
+      ["Depuis le 1er avril 2021, fusion de la DDCS et de l'UD DIRECCTE","Depuis 2008, fusion de l'ANPE et des Assedic","Depuis 1884, fusion des syndicats","Depuis 2016, fusion des conseils de prud'hommes"],[0],
+      "La DDETS (Direction Départementale de l'Emploi, du Travail et des Solidarités) couvre notamment l'insertion, l'hébergement et le logement, la cohésion sociale, ainsi que le renseignement et l'inspection du travail."),
+  ]
+},
+{
+  id:"cadre",
+  title:"Cadre général & sources (séance 1)",
+  desc:"Exclus du droit du travail, acteurs institutionnels, conventions collectives (slides)",
+  questions:[
+    Q("s","Comment peut-on définir le droit du travail selon le cours ?",
+      ["L'ensemble des règles applicables aux relations individuelles et collectives entre les employeurs privés (ou assimilés) et ceux qui travaillent sous leur autorité","L'ensemble des règles fiscales applicables aux entreprises","Les règles régissant uniquement les syndicats","Les règles applicables aux fonctionnaires"],[0],
+      "Définition du cours : relations individuelles et collectives entre employeurs privés ou assimilés et ceux qui travaillent sous leur autorité à l'occasion de ce travail."),
+    Q("s","Le droit du travail est :",
+      ["Une branche autonome du droit privé","Une branche du droit public","Une simple partie du droit pénal","Un sous-ensemble du droit fiscal"],[0],
+      "Le droit du travail est une branche autonome du droit privé, qui s'inscrit dans un ensemble plus vaste (droit civil, pénal, des affaires) et a une histoire particulière."),
+    Q("s","Le droit du travail s'applique-t-il à toutes les personnes qui travaillent ?",
+      ["Non : de nombreuses personnes travaillent sans pouvoir revendiquer le droit du travail","Oui, à toute personne qui exerce une activité","Oui, mais seulement aux commerçants","Non, uniquement aux cadres"],[0],
+      "Le travail n'est pas réservé aux seuls salariés. Les « exclus » ne rentrent pas dans la définition du salariat."),
+    Q("m","Pour quelles catégories la loi établit-elle une présomption de non-salariat ?",
+      ["Les artisans","Les commerçants","Les agents commerciaux","Les ouvriers d'usine"],[0,1,2],
+      "Présomption de non-salariat : artisans, commerçants, agents commerciaux, agents de l'État et des collectivités, dirigeants d'entreprise. Les ouvriers sont des salariés."),
+    Q("s","Quel article du Code du travail présume non-salariées certaines personnes (article cité dans le cours) ?",
+      ["L 8221-6","L 1221-2","L 1242-1","L 1132-1"],[0],
+      "L'article L 8221-6 prive certaines personnes du bénéfice du droit du travail en les présumant non-salariées, en raison de leur immatriculation."),
+    Q("s","Quelle est la nature de la présomption de non-salariat ?",
+      ["Une présomption simple, qui tombe s'il existe un lien de subordination avec un donneur d'ordre","Une présomption irréfragable","Une présomption valable uniquement pour les artisans","Une présomption qui ne concerne que les auto-entrepreneurs"],[0],
+      "La présomption est simple : elle devient caduque s'il existe un lien de subordination."),
+    Q("m","Quelles associations « inscription ↔ catégorie » sont exactes ?",
+      ["RCS ↔ commerçants et dirigeants de sociétés commerciales","Répertoire des métiers ↔ artisans","Registre des agents commerciaux ↔ agents commerciaux","Registre unique du personnel ↔ artisans"],[0,1,2],
+      "Le registre unique du personnel est une obligation de l'employeur pour ses salariés, pas une immatriculation d'indépendant."),
+    Q("s","Pourquoi le commerçant n'est-il en principe pas salarié ?",
+      ["Il n'est pas dans un lien de subordination avec ses clients : il est « libre »","Parce qu'il ne perçoit aucun revenu","Parce qu'il est inscrit à France Travail","Parce qu'il est fonctionnaire"],[0],
+      "Le commerçant achète des biens à des fournisseurs et les revend à ses clients, sans subordination."),
+    Q("s","Par quel type de contrat l'artisan est-il lié à ses clients ?",
+      ["Un contrat d'entreprise (articles 1710 et suivants du Code civil)","Un contrat de travail à durée déterminée","Un contrat de mandat","Un contrat d'apprentissage"],[0],
+      "L'artisan fournit une prestation pour un prix déterminé au profit du maître d'ouvrage (le client)."),
+    Q("s","Quel critère distingue surtout l'artisan du salarié ?",
+      ["L'autonomie : il exécute seul sa tâche, en toute indépendance","Le montant de sa rémunération","Le lieu où il travaille","La durée de son contrat"],[0],
+      "C'est le critère d'autonomie qui est important."),
+    Q("m","Que peut-on dire de l'agent commercial ?",
+      ["C'est un mandataire","Il perçoit des commissions, pas un salaire","Son statut est régi par le Code du commerce","Il est toujours salarié de son mandant"],[0,1,2],
+      "Il n'est pas en principe subordonné à son mandant, mais sa situation peut être requalifiée en contrat de travail (présomption de salariat)."),
+    Q("m","Quelles affirmations sur l'auto-entrepreneur sont vraies ?",
+      ["Le statut a été créé le 4 août 2008","Il est dispensé de s'immatriculer au RCS ou au répertoire des métiers","Son chiffre d'affaires est plafonné","Il est automatiquement salarié de ses clients"],[0,1,2],
+      "Il est présumé non salarié, sauf si ses conditions de travail laissent supposer un lien de subordination avec un donneur d'ordre. Exemple : requalification d'un chauffeur VTC."),
+    Q("s","À quel régime sont soumis les fonctionnaires et agents publics ?",
+      ["Aux lois régissant la fonction publique, pas au droit du travail","Au Code du travail uniquement","À une convention collective de branche","Au droit commercial"],[0],
+      "Ils ne sont pas soumis au droit du travail mais aux diverses lois régissant la fonction publique."),
+    Q("m","À propos du stagiaire, quelles affirmations sont exactes ?",
+      ["Il signe une convention de stage tripartite","La durée maximale du stage est de 6 mois","Une gratification est due si le stage dure plus de 2 mois","Il est là pour exécuter une prestation de travail"],[0,1,2],
+      "Le stagiaire est là pour acquérir une expérience pratique complétant sa formation théorique, pas pour exécuter une prestation de travail."),
+    Q("s","Quel est l'intérêt, pour un dirigeant, de cumuler mandat social et contrat de travail ?",
+      ["Avoir la même protection qu'un salarié (licenciement, assurance chômage…)","Payer moins de cotisations","Ne plus avoir d'employeur","Éviter tout lien de subordination"],[0],
+      "Sans cumul, le dirigeant ne perçoit pas les mêmes indemnités en cas de révocation."),
+    Q("s","Dans une SARL, le cumul mandat social / contrat de travail est possible pour :",
+      ["Le gérant non associé ou minoritaire","Tout gérant, sans condition","Uniquement le gérant majoritaire","Aucun gérant"],[0],
+      "Cumul possible : SARL (gérant non associé ou minoritaire), SA avec conseil d'administration (président du CA sous conditions), SA avec directoire (président et membres), SAS (en respectant les conditions du contrat de travail)."),
+    Q("s","Que faut-il pour que le cumul soit possible dans une SAS ?",
+      ["Respecter les conditions du contrat de travail","Que les statuts l'interdisent","Être actionnaire majoritaire","Avoir plus de 50 salariés"],[0],
+      "Dans la SAS, la liberté de rédaction des statuts est grande, mais le cumul suppose de respecter les conditions du contrat de travail (notamment le lien de subordination)."),
+    Q("m","Le droit du travail est « un droit au carrefour des autres droits ». Quelles juridictions peuvent intervenir en matière de droit du travail ?",
+      ["Le conseil de prud'hommes","Le tribunal judiciaire","Le tribunal de commerce","Le Conseil constitutionnel comme juge de première instance des litiges individuels"],[0,1,2],
+      "Le cours cite : le CPH, le tribunal judiciaire, le contentieux administratif, le contentieux pénal et le tribunal de commerce."),
+    Q("m","Quels sont les différents niveaux de négociation collective cités dans le cours ?",
+      ["L'ANI (accord national interprofessionnel)","La branche","L'entreprise","Le contrat de travail individuel"],[0,1,2],
+      "Le contrat individuel de travail est une source à part ; les niveaux de négociation sont l'ANI, la branche et l'entreprise."),
+    Q("s","Quelle est la différence entre une convention collective et un accord collectif ?",
+      ["La convention traite de l'ensemble du droit du travail d'un secteur ; l'accord ne porte que sur certains thèmes","La convention ne concerne que les salaires ; l'accord concerne tout","Il n'y a aucune différence","L'accord est unilatéral ; la convention est bilatérale"],[0],
+      "La convention adapte le Code du travail à un secteur donné (contrat, congés, salaires, classification, licenciement…). L'accord vise un thème : formation, salaires, égalité professionnelle…"),
+    Q("s","Si le contrat de travail contient des dispositions plus favorables au salarié que la convention applicable, que se passe-t-il ?",
+      ["Le contrat de travail prime","La convention prime toujours","Aucune des deux ne s'applique","Le juge choisit au hasard"],[0],
+      "Un contrat de travail peut contenir des dispositions plus favorables que l'accord ou la convention : dans ce cas, le contrat prime."),
+    Q("m","Quels niveaux de champ d'application une convention ou un accord peut-il couvrir ?",
+      ["Géographique : national, régional, départemental","Professionnel : interprofessionnel, branche, entreprise","Il est indiqué généralement dans l'article 1","Uniquement international"],[0,1,2],
+      "Chaque convention ou accord indique clairement son champ d'application, généralement dans l'article 1."),
+    Q("s","Quel est le statut du code APE pour déterminer la convention applicable ?",
+      ["Un simple indice, pas une preuve ; l'activité principale effective est le vrai critère","Une preuve absolue","Un critère sans valeur","Un critère réservé aux agents commerciaux"],[0],
+      "Le code APE aide à comparer l'activité de l'entreprise aux activités visées, mais seule l'activité effective et principale détermine l'application."),
+    Q("s","Quand une entreprise entrant dans le champ d'une convention est-elle tenue de l'appliquer ?",
+      ["Si elle adhère à l'organisation patronale signataire","Jamais","Seulement si ses salariés le demandent","Uniquement si elle a plus de 500 salariés"],[0],
+      "Elle est tenue d'appliquer le texte si elle adhère à l'organisation patronale signataire."),
+    Q("s","Que désigne la « sociologie de l'emploi » ?",
+      ["L'étude du chômage et des politiques de l'emploi","L'étude des rapports de pouvoir dans l'entreprise","L'analyse économique des lois","L'étude des conventions collectives"],[0],
+      "La sociologie du travail étudie les rapports de travail et de pouvoir ; la sociologie de l'emploi s'intéresse au chômage et aux politiques de l'emploi. L'économie propose une analyse économique du droit."),
+  ]
+},
+{
+  id:"contrat",
+  title:"Le contrat de travail",
+  desc:"Définition, qualification, CDI / CDD / intérim, période d'essai, clauses, embauche",
+  questions:[
+    Q("s","Qui définit le contrat de travail ?",
+      ["La jurisprudence","Le Code du travail","Le règlement intérieur","L'inspection du travail"],[0],
+      "Ce n'est pas le Code du travail qui définit le contrat de travail, mais la jurisprudence : « convention par laquelle une personne (le salarié) s'engage envers une autre, sous son autorité, l'employeur, à fournir une prestation déterminée, moyennant une rémunération »."),
+    Q("m","Quels sont les 3 éléments constitutifs du contrat de travail ?",
+      ["Une prestation de travail","Une rémunération","Un lien de subordination","Un écrit signé"],[0,1,2],
+      "Qu'il soit écrit ou non, le contrat existe dès que ces 3 éléments sont réunis."),
+    Q("s","Quel est LE critère du contrat de travail ?",
+      ["Le lien de subordination","La rémunération","Le lieu de travail","La durée du travail"],[0],
+      "Le salarié ne travaille pas pour son compte mais pour celui de l'employeur, sous son autorité. Travail et rémunération sont nécessaires mais non suffisants."),
+    Q("m","Quels sont les 3 pouvoirs de l'employeur qui caractérisent le lien de subordination ?",
+      ["Le pouvoir de direction","Le pouvoir de contrôle","Le pouvoir de sanction","Le pouvoir législatif"],[0,1,2],
+      "Direction (ordres, directives), contrôle (vérifier leur respect), sanction (variées)."),
+    Q("s","D'après la Cour de cassation, de quoi dépend l'existence d'une relation de travail ?",
+      ["Des conditions de fait dans lesquelles l'activité est exercée","De la volonté exprimée par les parties","De la dénomination donnée à la convention","Du lieu de signature"],[0],
+      "Elle ne dépend ni de la volonté des parties ni de la dénomination donnée, mais des conditions de fait."),
+    Q("s","Que s'est-il passé avec le CPH de Paris le 20 décembre 2016 ?",
+      ["Il a requalifié en contrat de travail la relation entre un chauffeur VTC auto-entrepreneur et une plateforme","Il a interdit les plateformes numériques","Il a créé le statut d'auto-entrepreneur","Il a abrogé le CNE"],[0],
+      "Question des travailleurs de plateforme : indépendants ou salariés soumis au pouvoir de direction et de contrôle de la plateforme ?"),
+    Q("m","Quelles sont les conditions de validité du contrat de travail ?",
+      ["La capacité de contracter","Un consentement non vicié (erreur, dol, violence)","Un contenu certain et licite","Une durée minimale d'un an"],[0,1,2],
+      "Les trois conditions de validité du cours : capacité, consentement libre, contenu certain et licite."),
+    Q("s","Que signifie « synallagmatique » pour le contrat de travail ?",
+      ["Chacune des parties a des obligations","Le contrat est conclu en fonction de la personne","Le contrat résulte d'un simple accord oral","Le contrat comporte des clauses non négociables"],[0],
+      "Synallagmatique : obligations réciproques. À titre onéreux : chaque partie tire et procure un avantage (salaire / prestation)."),
+    Q("s","Que signifie « intuitu personae » ?",
+      ["Le contrat est conclu en fonction des personnes qui y participent","Le contrat est à durée indéterminée","Le contrat est toujours écrit","Le contrat est collectif"],[0],
+      "Contrat conclu en considération de la personne : seules les personnes participantes sont concernées."),
+    Q("s","Que signifie « contrat d'adhésion » ?",
+      ["Il peut comporter des clauses non négociables proposées par l'employeur","Il est signé par un syndicat","Il est conclu pour une mission précise","Il est réservé aux cadres"],[0],
+      "Autres caractères : consensuel (résulte d'un accord, un écrit est exigé dans certains cas) et à exécution successive."),
+    Q("s","Quelles sont les 3 catégories de salariés distinguées généralement par le cours ?",
+      ["Ouvriers ; employés et agents de maîtrise ; cadres et ingénieurs","Cadres ; stagiaires ; apprentis","CDI ; CDD ; intérimaires","Salariés ; indépendants ; fonctionnaires"],[0],
+      "Côté employeur : personne physique ou morale."),
+    Q("s","Un CDI à temps complet peut-il être conclu oralement ?",
+      ["Oui en principe, sous réserve des dispositions conventionnelles","Non, jamais","Oui, mais seulement pour les cadres","Oui, mais il est alors requalifié en CDD"],[0],
+      "Même dans ce cas, l'employeur communique par écrit les informations principales sur la relation de travail (art. L. 1221-5-1)."),
+    Q("m","Pour quels contrats un écrit est-il exigé ?",
+      ["Le CDD","L'intérim","Le travail à temps partiel","Le CDI à temps complet (toujours)"],[0,1,2],
+      "Le CDI à temps complet peut en principe être oral. Lorsqu'il est écrit, le contrat est rédigé en français (art. L. 1221-3)."),
+    Q("s","Quelle est la forme normale et générale de la relation de travail ?",
+      ["Le CDI (art. L. 1221-2)","Le CDD","L'intérim","Le contrat intermittent"],[0],
+      "Le CDI ne fixe pas de date de fin. Il peut prendre fin par démission, licenciement ou rupture conventionnelle."),
+    Q("m","Quelles mentions faut-il vérifier dans un contrat ?",
+      ["Type de contrat et poste/qualification","Lieu de travail et rémunération","Durée du travail et convention collective applicable","La couleur du logo de l'entreprise"],[0,1,2],
+      "À lire aussi si elles sont prévues : période d'essai, mobilité, non-concurrence, exclusivité."),
+    Q("s","Que concerne la clause de mobilité ?",
+      ["Un changement de lieu de travail (zone géographique à repérer)","Une interdiction de travailler après le contrat","L'exercice d'une autre activité pendant le contrat","Le remboursement de frais de formation"],[0],
+      "Non-concurrence : limite certaines activités après la fin du contrat (durée, zone, activités, contrepartie financière). Exclusivité : exercice d'une autre activité pendant le contrat."),
+    Q("m","Quels éléments faut-il repérer dans une clause de non-concurrence ?",
+      ["La durée","La zone géographique","Les activités visées","La contrepartie financière"],[0,1,2,3],
+      "Les quatre éléments sont à vérifier ; la contrepartie financière est indispensable."),
+    Q("s","Que dit l'article L 1242-1 sur le CDD ?",
+      ["Il ne peut avoir ni pour objet ni pour effet de pourvoir durablement un emploi lié à l'activité normale et permanente de l'entreprise","Il est le contrat de principe","Il est interdit dans l'industrie","Il doit durer au moins 6 mois"],[0],
+      "But du CDD : faire face à un besoin ponctuel. Risque en cas d'irrespect des règles (cas de recours, durée, renouvellement) : requalification en CDI."),
+    Q("m","Quels sont des cas de recours autorisés au CDD ?",
+      ["Remplacement d'un salarié","Accroissement temporaire d'activité","Emploi à caractère saisonnier","Pourvoir durablement un poste permanent"],[0,1,2],
+      "S'y ajoutent le CDD d'usage de la profession et d'autres cas moins fréquents."),
+    Q("m","Dans quels cas le recours au CDD est-il interdit ?",
+      ["Remplacer un salarié gréviste","Affecter un salarié à certains travaux particulièrement dangereux","Dans les 6 mois suivant un licenciement économique, pour accroissement temporaire d'activité sur les postes concernés (sauf exceptions)","Remplacer un salarié absent pour maladie"],[0,1,2],
+      "Le remplacement d'un salarié absent est un cas de recours autorisé."),
+    Q("s","À défaut de règle de branche, quelle est généralement la durée maximale d'un CDD, renouvellements compris ?",
+      ["18 mois","6 mois","12 mois","36 mois"],[0],
+      "La durée maximale dépend du motif et des dispositions de branche ; à défaut, le plafond est généralement de 18 mois, avec des exceptions."),
+    Q("s","À défaut d'accord de branche étendu, combien de fois un CDD à terme précis peut-il être renouvelé ?",
+      ["Deux fois","Une fois","Quatre fois","Aucune fois"],[0],
+      "Les conditions de renouvellement figurent au contrat ou dans un avenant soumis avant son terme, dans le respect du plafond de durée."),
+    Q("s","Quel est le délai de carence à défaut de règle de branche pour un contrat ayant duré au moins 14 jours ?",
+      ["Le tiers de la durée totale du contrat","La moitié de la durée totale","Le quart de la durée totale","Aucun délai"],[0],
+      "En dessous de 14 jours : la moitié. La durée inclut les renouvellements et se compte en jours d'ouverture de l'établissement."),
+    Q("s","Que risque un CDD qui n'est pas écrit ou ne précise pas son motif (art. L. 1242-12) ?",
+      ["Une requalification en CDI","Une amende de l'URSSAF uniquement","Rien du tout","Une transformation en intérim"],[0],
+      "Le CDD doit être écrit, avec son motif, et transmis au salarié au plus tard dans les 2 jours ouvrables suivant l'embauche."),
+    Q("s","Quel est le délai de transmission du CDD au salarié ?",
+      ["Au plus tard dans les 2 jours ouvrables suivant l'embauche","Dans les 2 mois","Le jour de la fin du contrat","Dans les 15 jours"],[0],
+      "Vérifier aussi : terme ou durée minimale, poste et, pour un remplacement, nom et qualification de la personne remplacée."),
+    Q("m","À propos de l'égalité de traitement du salarié en CDD :",
+      ["Il est soumis aux horaires de l'entreprise","Il est soumis au règlement intérieur","Il bénéficie des avantages sociaux (tickets-restaurant, primes…)","Sa rémunération peut être inférieure à celle d'un CDI à fonction équivalente"],[0,1,2],
+      "À fonction et qualification équivalentes, la rémunération ne peut pas être inférieure. Il a droit aux congés payés dans les mêmes conditions."),
+    Q("m","Dans quels cas la rupture anticipée du CDD est-elle possible ?",
+      ["Accord des parties","Faute grave","Force majeure ou inaptitude constatée par le médecin du travail","Simple changement d'avis de l'employeur"],[0,1,2],
+      "Le salarié peut aussi rompre le CDD s'il justifie d'une embauche en CDI."),
+    Q("s","Le contrat de travail temporaire (intérim) n'est possible que pour :",
+      ["L'exécution d'une tâche précise et temporaire, dite mission, dans les cas prévus par la loi","Tout poste permanent","Les cadres uniquement","Les fonctionnaires uniquement"],[0],
+      "Conclu hors du cadre légal, il peut être considéré comme un CDI. L'utilisateur peut même être une personne morale de droit public."),
+    Q("s","Comment est mise en place la période d'essai ?",
+      ["Elle est facultative et doit être expressément prévue dans le contrat ou la lettre d'engagement","Elle est obligatoire","Elle se présume dans tout CDI","Elle commence un mois après l'embauche"],[0],
+      "Elle permet à l'employeur d'évaluer les compétences du salarié et au salarié d'apprécier si le poste lui convient. Elle commence au début de l'exécution du contrat."),
+    Q("s","Quelle est la durée initiale maximale de la période d'essai d'un CDI pour un cadre ?",
+      ["4 mois","2 mois","3 mois","6 mois"],[0],
+      "Ouvriers et employés : 2 mois (4 mois max renouvelée). Agents de maîtrise et techniciens : 3 mois (6). Cadres : 4 mois (8)."),
+    Q("s","Quelle est la durée initiale maximale de la période d'essai d'un CDI pour un ouvrier ou employé ?",
+      ["2 mois","1 mois","3 mois","4 mois"],[0],
+      "Renouvelée, le total maximal est de 4 mois."),
+    Q("m","Conditions du renouvellement de la période d'essai d'un CDI :",
+      ["Un accord de branche étendu le permet","Le contrat ou la lettre d'engagement le prévoit","Le salarié y consent","Le renouvellement est possible deux fois"],[0,1,2],
+      "Un seul renouvellement est possible, à ces trois conditions."),
+    Q("s","Quelle est la durée maximale de la période d'essai d'un CDD de 6 mois au plus ?",
+      ["1 jour par semaine, maximum 2 semaines","1 jour par semaine, maximum 1 mois","2 jours par semaine, maximum 1 mois","1 mois"],[0],
+      "CDD de plus de 6 mois : 1 jour par semaine, maximum 1 mois. Non renouvelable dans les deux cas."),
+    Q("s","Pendant la période d'essai, la rupture du contrat par l'employeur :",
+      ["Est libre, sans motif ni indemnité, mais soumise à un délai de prévenance","Doit toujours être motivée","Suit la procédure de licenciement","Ouvre droit à une indemnité systématique"],[0],
+      "Les règles de procédure du licenciement ne s'appliquent pas. Limites : motif discriminatoire, salarié protégé, usage abusif."),
+    Q("s","Quel est le délai de prévenance de l'employeur après 1 mois de présence (et moins de 3 mois) ?",
+      ["2 semaines","24 heures","48 heures","1 mois"],[0],
+      "24 h avant 8 jours de présence ; 48 h entre 8 jours et 1 mois ; 2 semaines après 1 mois ; 1 mois après 3 mois."),
+    Q("s","Quel est le délai de prévenance du salarié qui met fin à sa période d'essai ?",
+      ["48 heures (24 heures si moins de 8 jours de présence)","2 semaines","1 mois","Aucun délai"],[0],
+      "Le salarié respecte un délai de 48 heures, ramené à 24 heures s'il est présent depuis moins de 8 jours."),
+    Q("m","Quels éléments du contrat sont « essentiels » (leur modification requiert l'accord du salarié) ?",
+      ["L'emploi / la qualification professionnelle","La rémunération","La durée du travail","Un changement d'horaires (sauf exceptions) dans le même secteur"],[0,1,2],
+      "Aussi : le lieu de travail s'il change de secteur géographique. Les horaires, heures supplémentaires, rattachement hiérarchique et mutation dans le même secteur relèvent du pouvoir de direction (simple changement des conditions de travail)."),
+    Q("m","Que doit respecter une annonce de recrutement ?",
+      ["L'emploi de la langue française","L'absence de mention d'une limite d'âge supérieur","L'absence de mention discriminatoire (art. L. 1132-1)","L'indication du sexe du candidat souhaité"],[0,1,2],
+      "Canaux : France Travail ou recrutement direct (interne et externe)."),
+    Q("s","À qui l'employeur adresse-t-il la déclaration préalable à l'embauche (DPAE), et quand ?",
+      ["À l'URSSAF, avant toute embauche","À l'inspection du travail, après 3 mois","Au conseil de prud'hommes, le jour de l'embauche","À la DDETS, après la période d'essai"],[0],
+      "Elle est obligatoire quelles que soient la durée et la nature du contrat, pour tout employeur."),
+    Q("s","Combien de temps le registre unique du personnel garde-t-il trace de l'emploi après la sortie du salarié ?",
+      ["5 ans","1 an","10 ans","2 ans"],[0],
+      "Il doit être à la disposition des représentants du personnel et de l'inspection du travail."),
+    Q("s","Comment débute en principe le suivi de santé d'un salarié embauché ?",
+      ["Par une visite d'information et de prévention","Par un examen d'aptitude systématique","Par une visite chez un médecin choisi par l'employeur après 1 an","Il n'y a aucun suivi"],[0],
+      "Pour les postes à suivi individuel renforcé, un examen d'aptitude est réalisé avant l'affectation."),
+    Q("s","Que prévoit une clause de dédit-formation ?",
+      ["Le remboursement de certains frais de formation si le salarié quitte l'entreprise dans les conditions fixées","L'interdiction de faire concurrence","L'attribution d'un véhicule de fonction","Un objectif de chiffre d'affaires"],[0],
+      "La clause d'objectifs fixe des résultats à atteindre (plusieurs conditions de validité). Les clauses usuelles favorables au salarié : avantages en nature (nourriture, véhicule, NTIC, logement)."),
+  ]
+}
+];
+
+/* ---------- Utilitaires ---------- */
+const $app = document.getElementById("app");
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+const LETTERS = ["A","B","C","D"];
+let mode = store.get("qdt_mode") || "all"; // "all" | "10"
+let S = null; // état du quiz
+
+/* ---------- Accueil ---------- */
+function home(){
+  S = null;
+  const cards = COURSES.map(c => {
+    const best = store.get("qdt_best_"+c.id);
+    return `<button class="course" data-id="${c.id}">
+      <div class="t">${c.title}</div>
+      <div class="d">${c.desc}</div>
+      <div class="meta">${c.questions.length} questions ${best?`<span class="best">· meilleur score : ${best}%</span>`:""}</div>
+    </button>`;
+  }).join("");
+  const total = COURSES.reduce((n,c)=>n+c.questions.length,0);
+  $app.innerHTML = `
+    <h1>Quiz Droit du travail</h1>
+    <p class="sub">Choisis un cours et lance le QCM. Réponse unique ou multiple, correction immédiate, explication à la demande.</p>
+    <div class="mode">
+      <span>Longueur :</span>
+      <button class="chip ${mode==="all"?"on":""}" data-mode="all">Toutes les questions</button>
+      <button class="chip ${mode==="10"?"on":""}" data-mode="10">Rapide (10)</button>
+    </div>
+    <div class="courses">
+      ${cards}
+      <button class="course" data-id="all">
+        <div class="t">🔀 Tout mélanger</div>
+        <div class="d">Les trois cours dans un seul quiz</div>
+        <div class="meta">${total} questions</div>
+      </button>
+    </div>`;
+  $app.querySelectorAll(".course").forEach(b => b.onclick = () => start(b.dataset.id));
+  $app.querySelectorAll(".chip").forEach(b => b.onclick = () => { mode = b.dataset.mode; store.set("qdt_mode", mode); home(); });
+}
+
+/* ---------- Quiz ---------- */
+function start(id, customList){
+  let pool;
+  if (customList) pool = customList;
+  else if (id === "all") pool = COURSES.flatMap(c => c.questions);
+  else pool = COURSES.find(c => c.id === id).questions;
+  let list = shuffle(pool);
+  if (!customList && mode === "10") list = list.slice(0, 10);
+  S = { id, list, i:0, sel:new Set(), done:false, showExp:false, score:0, wrong:[], order:null };
+  question();
+}
+
+function question(){
+  const q = S.list[S.i];
+  S.order = shuffle(q.opts.map((_,k)=>k));
+  S.sel = new Set(); S.done = false; S.showExp = false;
+  draw();
+}
+
+function isMulti(q){ return q.t === "m"; }
+
+function draw(){
+  const q = S.list[S.i];
+  const multi = isMulti(q);
+  const pct = (S.i + (S.done?1:0)) / S.list.length * 100;
+  const optsHtml = S.order.map((k,pos) => {
+    let cls = "opt" + (multi?" multi":"");
+    const chosen = S.sel.has(k), good = q.ans.includes(k);
+    if (S.done){
+      if (chosen && good) cls += " ok";
+      else if (chosen && !good) cls += " ko";
+      else if (!chosen && good) cls += " miss";
+    } else if (chosen) cls += " sel";
+    return `<button class="${cls}" data-k="${k}" ${S.done?"disabled":""}>
+      <span class="k">${LETTERS[pos]}</span><span>${q.opts[k]}</span></button>`;
+  }).join("");
+
+  let feedback = "";
+  if (S.done){
+    const ok = S.lastOk;
+    let detail = "";
+    if (!ok){
+      const goods = S.order.filter(k=>q.ans.includes(k)).map(k=>LETTERS[S.order.indexOf(k)]).join(", ");
+      detail = `<small>${multi?"Bonnes réponses":"Bonne réponse"} : ${goods}</small>`;
+    }
+    feedback = `<div class="verdict ${ok?"ok":"ko"}">${ok?"✅ Bonne réponse !":"❌ Mauvaise réponse"}${detail}</div>
+      ${S.showExp?`<div class="expl">${q.exp}</div>`:""}`;
+  }
+
+  const last = S.i === S.list.length - 1;
+  let actions;
+  if (!S.done){
+    actions = `<button class="btn" id="val" ${S.sel.size?"":"disabled"}>Valider</button>`;
+  } else {
+    actions = `<button class="btn ghost" id="exp">${S.showExp?"Masquer l'explication":"Voir l'explication"}</button>
+               <button class="btn" id="next">${last?"Voir le résultat":"Suivant →"}</button>`;
+  }
+
+  $app.innerHTML = `
+    <div class="top">
+      <button class="back" id="quit">← Accueil</button>
+      <div class="bar"><div style="width:${pct}%"></div></div>
+      <div class="count">${S.i+1} / ${S.list.length}</div>
+    </div>
+    <div class="card">
+      <span class="badge ${multi?"multi":""}">${multi?"PLUSIEURS RÉPONSES POSSIBLES":"UNE SEULE RÉPONSE"}</span>
+      <p class="q">${q.text}</p>
+      <div class="opts">${optsHtml}</div>
+      ${feedback}
+      <div class="actions">${actions}</div>
+      <div class="hint">Raccourcis : 1-4 pour choisir · Entrée pour valider / suivant · E pour l'explication</div>
+    </div>`;
+
+  $app.querySelectorAll(".opt").forEach(b => b.onclick = () => toggle(+b.dataset.k));
+  document.getElementById("quit").onclick = () => { if (confirm("Quitter le quiz en cours ?")) home(); };
+  const v = document.getElementById("val"); if (v) v.onclick = validate;
+  const e = document.getElementById("exp"); if (e) e.onclick = () => { S.showExp = !S.showExp; draw(); };
+  const n = document.getElementById("next"); if (n) n.onclick = next;
+}
+
+function toggle(k){
+  if (S.done) return;
+  const q = S.list[S.i];
+  if (isMulti(q)){ S.sel.has(k) ? S.sel.delete(k) : S.sel.add(k); }
+  else { S.sel = new Set([k]); }
+  draw();
+}
+
+function validate(){
+  if (S.done || !S.sel.size) return;
+  const q = S.list[S.i];
+  const a = [...S.sel].sort().join(), b = q.ans.slice().sort().join();
+  S.lastOk = (a === b);
+  if (S.lastOk) S.score++; else S.wrong.push(q);
+  S.done = true;
+  draw();
+}
+
+function next(){
+  if (S.i < S.list.length - 1){ S.i++; question(); }
+  else end();
+}
+
+/* ---------- Fin ---------- */
+function end(){
+  const total = S.list.length, pct = Math.round(S.score/total*100);
+  const key = "qdt_best_" + S.id;
+  const full = !(mode === "10" && S.id !== "custom") ; // meilleur score uniquement sur les quiz complets ou rapides standards
+  if (S.id !== "custom"){
+    const prev = +store.get(key) || 0;
+    if (mode === "all" && pct > prev) store.set(key, pct);
+  }
+  const msg = pct===100 ? "Parfait ! 🎉" : pct>=80 ? "Très bien 👏" : pct>=60 ? "Pas mal, continue 💪" : "À retravailler, tu vas y arriver !";
+  const review = S.wrong.length ? `<div class="review"><b>À revoir (${S.wrong.length})</b>${S.wrong.map(q=>{
+      const good = q.ans.map(k=>q.opts[k]).join(" · ");
+      return `<div class="it"><b>${q.text}</b><span>✔ ${good}</span></div>`;
+    }).join("")}</div>` : "";
+  $app.innerHTML = `
+    <div class="card end">
+      <div class="sub">Résultat</div>
+      <div class="score">${S.score} / ${total}</div>
+      <div>${pct}% — ${msg}</div>
+      <div class="actions" style="justify-content:center">
+        ${S.wrong.length?`<button class="btn" id="redo">Refaire mes erreurs</button>`:""}
+        <button class="btn ghost" id="again">Rejouer</button>
+        <button class="btn ghost" id="home">Accueil</button>
+      </div>
+      ${review}
+    </div>`;
+  const wrong = S.wrong.slice(), id = S.id;
+  document.getElementById("again").onclick = () => start(id === "custom" ? "all" : id);
+  document.getElementById("home").onclick = home;
+  const r = document.getElementById("redo");
+  if (r) r.onclick = () => start("custom", wrong);
+}
+
+/* ---------- Clavier ---------- */
+document.addEventListener("keydown", ev => {
+  if (!S || !S.list || !document.getElementById("quit")) return;
+  const q = S.list[S.i];
+  if (ev.key >= "1" && ev.key <= "4"){
+    const k = S.order[+ev.key - 1];
+    if (k !== undefined) toggle(k);
+  } else if (ev.key === "Enter"){
+    ev.preventDefault();
+    S.done ? next() : validate();
+  } else if ((ev.key === "e" || ev.key === "E") && S.done){
+    S.showExp = !S.showExp; draw();
+  }
+});
+
+home();
+</script>
+</body>
+</html>
